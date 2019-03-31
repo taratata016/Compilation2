@@ -69,14 +69,14 @@
 %left DIFF
 %left PARENTHESEOUVERT
 
-%start ENTRY_POINT
+%start LIST_INSTRUCTION
 
 %%
-ENTRY_POINT: LIST_INSTRUCTION;
 
 LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION
                   | INST_AFFECTATION LIST_INSTRUCTION
                   | COMMENTAIRE LIST_INSTRUCTION
+                  | BOUCLE_FOR LIST_INSTRUCTION
                   |
                   ;
 
@@ -157,24 +157,25 @@ VAR: IDF {
 IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME{
           nondeclare($1);
           accesTab($1,atoi($3));
-          
           char* c = $1;
           c = strcat(c,"[");
         	c = strcat(c,$3);
         	c = strcat(c,"]");
           $$ = c;
-
         };
 
 TYPE: MC_INT { $$ = "INT"}
       | MC_CHAR { $$ = "CHR" }
       | MC_FLOAT { $$ = "FLT" }
+      ;
 
+BOUCLE_FOR: FOR IDF IN_RANGE PARENTHESEOUVERT INTEGER VIRGULE INTEGER PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE LIST_INSTRUCTION_BOUCLE{printf("boucle trouvé");};
+LIST_INSTRUCTION_BOUCLE: TAB LIST_INSTRUCTION;
 %%
+
 
 int yyerror (char* msg){
 	printf("Erreur a la ligne: %d, colonne: %d, %s\n",yylineno,colonne,msg);
-	
   return 1;
 }
 

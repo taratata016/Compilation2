@@ -14,20 +14,19 @@ extern YYSTYPE yylval;
 %option yylineno
 
 maj [A-Z]
-min [a-z]
-lettre [a-zA-Z]
+miniscule [a-z]
 chiffre [0-9]
-INTEGER [-]{chiffre}+|{chiffre}+
-CHAR '.'
 Tab [\t]
-IDF {maj}({min}|{chiffre})*
-FLOAT [-][0-9]+"."[0-9]+|[0-9]+"."[0-9]+
+IDF {maj}({miniscule}|{chiffre})*
 COMMENTAIRE ("#"){CHAR}*
 NOUVELLE_LIGNE [\n]
 
+INTEGER [-]{chiffre}+|{chiffre}+
+FLOAT [-][0-9]+"."[0-9]+|[0-9]+"."[0-9]+
+CHAR '.'
+
 %%
 " " {colonne++;}
-"_" {colonne++;}
 {Tab} {colonne++; return TAB;}
 "in range" { colonne+=yyleng; return IN_RANGE; }
 {NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE;}
@@ -63,8 +62,7 @@ NOUVELLE_LIGNE [\n]
 "=" 				{ colonne+=yyleng;  return AFFECTATION;}
 {COMMENTAIRE} 		{ colonne+=yyleng; yylval.chaine=strdup(yytext); printf("commentaire \n"); return COMMENTAIRE;}
 {CHAR} 				{ colonne+=yyleng; yylval.chaine=strdup(yytext); return CHAR; }
-{IDF} 		{			printf ("Le nombre de characteres est %i \n", yyleng);
-						printf ("Le nombre de characteres actuel est %i \n", colonne);
+{IDF} 		{			
 						if(yyleng <8) {
 							colonne+=yyleng;
 							yylval.chaine=strdup(yytext);
@@ -73,8 +71,8 @@ NOUVELLE_LIGNE [\n]
 							printf(" Erreur lexicale a la ligne: %d, colonne: %d :Identificateur trop long\n",ligne,colonne);
 						}
 					}
-{INTEGER} 			{ colonne+=yyleng; yylval.chaine=strdup(yytext); return INTEGER;}
-{FLOAT} 			{  colonne+=yyleng; yylval.chaine=strdup(yytext); return FLOAT;}
+{FLOAT} 			{ colonne+=yyleng; yylval.chaine=strdup(yytext); return FLOAT;}
+{INTEGER} 		{ colonne+=yyleng; yylval.chaine=strdup(yytext); return INTEGER;}
 
 .printf("Lexical error : ligne : %d ,colonne : %d\n",ligne,colonne);
 
