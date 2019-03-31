@@ -108,6 +108,11 @@ typedef union YYSTYPE
     char* type;
     char* temp;
   }NT;
+  
+  struct val{
+    char* type;
+    char* value;
+  }val;
 
   struct jump{
     int sauvFin;
@@ -118,7 +123,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 122 "bison.tab.h"
+#line 127 "bison.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

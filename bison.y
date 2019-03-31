@@ -21,7 +21,7 @@
   struct val{
     char* type;
     char* value;
-  }NT;
+  }val;
 
   struct jump{
     int sauvFin;
@@ -39,7 +39,7 @@
 %token CASE CHECK SO ENDCHECK DEFAULT ENDCASE
 %token FOR DO ENDFOR
 %token COMMENTAIRE
-%token <chaine>FLOAT <chaine>INTEGER <chaine>IDF CHAR MC_INT MC_FLOAT MC_CHAR WHILE
+%token FLOAT INTEGER IDF CHAR MC_INT MC_FLOAT MC_CHAR WHILE
 %token AFFECTATION
 %token PLUS
 %token MULTI
@@ -58,6 +58,7 @@
 
 %type <NT>EXPRESSION
 %type <val>VALEUR
+%type <chaine>TYPE FLOAT INTEGER IDF IDFTAB CHAR VAR
 
 %left OR
 %left AND
@@ -71,22 +72,40 @@
 %start ENTRY_POINT
 
 %%
-ENTRY_POINT: INSTRUCTION;
+ENTRY_POINT: LIST_INSTRUCTION;
 
-INSTRUCTION:  INST_AFFECTATION INSTRUCTION
-              | COMMENTAIRE INSTRUCTION
-              | LIST_DECLARATIONS
-              |
-              ;
+LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION
+                  | INST_AFFECTATION LIST_INSTRUCTION
+                  | COMMENTAIRE LIST_INSTRUCTION
+                  |
+                  ;
 
-LIST_DECLARATIONS: DECLARATION
-                   | LIST_DECLARATIONS
+LIST_DECLARATIONS: LIST_DECLARATIONS DECLARATION
+                   |
                    ;
-DECLARATION: TYPE IDF NOUVELLE_LIGNE
-             | TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+DECLARATION: TYPE IDF NOUVELLE_LIGNE 
+              {
+                if(!declaredeja($2)){
+                  inserer($2,"var",$1,1);
+                }
+              }
+             |
+             TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+             {
+                if(!declaredeja($2)){
+                  inserer($2,"var",$1,1);
+                }
+              }
              ;
 
-INST_AFFECTATION: IDF AFFECTATION EXPRESSION;
+INST_AFFECTATION: IDF AFFECTATION EXPRESSION
+                 {
+                  if(!nondeclare($1))
+                  {
+                    modifConstant($1);
+                    compareTypes(idfType($1),$3.type);
+                  }
+                 };
 
 EXPRESSION: EXPRESSION PLUS EXPRESSION{
               compareTypes($1.type,$3.type);
@@ -116,12 +135,12 @@ EXPRESSION: EXPRESSION PLUS EXPRESSION{
               $$.temp=$2.temp;
               $$.type=$2.type;
             }
-            |  VAR {
+            | VAR {
               $$.temp=$1;
               $$.type=idfType($1);
             }
             | VALEUR{
-              $$.temp=$1;
+              $$.temp=$1.value;
               $$.type=$1.type;
             }
             ;
@@ -129,6 +148,27 @@ VALEUR: FLOAT { $$.type = "FLT"; $$.value = $1;}
         | INTEGER {$$.type = "INT"; $$.value = $1;}
         | CHAR {$$.type = "CHR"; $$.value = $1;}
         ;
+VAR: IDF {
+      nondeclare($1);
+     }
+     | IDFTAB
+     ;
+
+IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME{
+          nondeclare($1);
+          accesTab($1,atoi($3));
+          
+          char* c = $1;
+          c = strcat(c,"[");
+        	c = strcat(c,$3);
+        	c = strcat(c,"]");
+          $$ = c;
+
+        };
+
+TYPE: MC_INT { $$ = "INT"}
+      | MC_CHAR { $$ = "CHR" }
+      | MC_FLOAT { $$ = "FLT" }
 
 %%
 

@@ -2,16 +2,12 @@ Terminals unused in grammar
 
    POINTVIRGULE
    DEUXPOINTS
-   PARENTHESEFERME
-   CROCHETOUVERT
-   CROCHETFERME
    VIRGULE
    PROGRAM
    Begin
    END
    CONSTANT
    IN_RANGE
-   NOUVELLE_LIGNE
    TAB
    IF
    ELSE
@@ -26,21 +22,7 @@ Terminals unused in grammar
    FOR
    DO
    ENDFOR
-   COMMENTAIRE
-   FLOAT
-   INTEGER
-   IDF
-   CHAR
-   MC_INT
-   MC_FLOAT
-   MC_CHAR
    WHILE
-   AFFECTATION
-   PLUS
-   MULTI
-   DIV
-   PUISSANCE
-   MOIN
    AND
    OR
    DIFF
@@ -52,11 +34,52 @@ Terminals unused in grammar
    INFEGALE
 
 
+State 0 conflicts: 2 shift/reduce, 1 reduce/reduce
+State 1 conflicts: 2 shift/reduce, 1 reduce/reduce
+State 5 conflicts: 5 shift/reduce, 1 reduce/reduce
+State 6 conflicts: 2 shift/reduce, 1 reduce/reduce
+
+
 Grammar
 
     0 $accept: ENTRY_POINT $end
 
-    1 ENTRY_POINT: PARENTHESEOUVERT
+    1 ENTRY_POINT: LIST_INSTRUCTION
+
+    2 LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION
+    3                 | INST_AFFECTATION LIST_INSTRUCTION
+    4                 | COMMENTAIRE LIST_INSTRUCTION
+    5                 | /* empty */
+
+    6 LIST_DECLARATIONS: LIST_DECLARATIONS DECLARATION
+    7                  | /* empty */
+
+    8 DECLARATION: TYPE IDF NOUVELLE_LIGNE
+    9            | TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+
+   10 INST_AFFECTATION: IDF AFFECTATION EXPRESSION
+
+   11 EXPRESSION: EXPRESSION PLUS EXPRESSION
+   12           | EXPRESSION MOIN EXPRESSION
+   13           | EXPRESSION DIV EXPRESSION
+   14           | EXPRESSION PUISSANCE EXPRESSION
+   15           | EXPRESSION MULTI EXPRESSION
+   16           | PARENTHESEOUVERT EXPRESSION PARENTHESEFERME
+   17           | VAR
+   18           | VALEUR
+
+   19 VALEUR: FLOAT
+   20       | INTEGER
+   21       | CHAR
+
+   22 VAR: IDF
+   23    | IDFTAB
+
+   24 IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME
+
+   25 TYPE: MC_INT
+   26     | MC_CHAR
+   27     | MC_FLOAT
 
 
 Terminals, with rules where they appear
@@ -65,17 +88,17 @@ $end (0) 0
 error (256)
 POINTVIRGULE (258)
 DEUXPOINTS (259)
-PARENTHESEOUVERT (260) 1
-PARENTHESEFERME (261)
-CROCHETOUVERT (262)
-CROCHETFERME (263)
+PARENTHESEOUVERT (260) 16
+PARENTHESEFERME (261) 16
+CROCHETOUVERT (262) 24
+CROCHETFERME (263) 24
 VIRGULE (264)
 PROGRAM (265)
 Begin (266)
 END (267)
 CONSTANT (268)
 IN_RANGE (269)
-NOUVELLE_LIGNE (270)
+NOUVELLE_LIGNE (270) 8 9
 TAB (271)
 IF (272)
 ELSE (273)
@@ -90,21 +113,21 @@ ENDCASE (281)
 FOR (282)
 DO (283)
 ENDFOR (284)
-COMMENTAIRE (285)
-FLOAT (286)
-INTEGER (287)
-IDF (288)
-CHAR (289)
-MC_INT (290)
-MC_FLOAT (291)
-MC_CHAR (292)
+COMMENTAIRE (285) 4
+FLOAT (286) 19
+INTEGER (287) 20 24
+IDF (288) 8 9 10 22 24
+CHAR (289) 21
+MC_INT (290) 25
+MC_FLOAT (291) 27
+MC_CHAR (292) 26
 WHILE (293)
-AFFECTATION (294)
-PLUS (295)
-MULTI (296)
-DIV (297)
-PUISSANCE (298)
-MOIN (299)
+AFFECTATION (294) 9 10
+PLUS (295) 11
+MULTI (296) 15
+DIV (297) 13
+PUISSANCE (298) 14
+MOIN (299) 12
 AND (300)
 OR (301)
 DIFF (302)
@@ -122,33 +145,528 @@ $accept (54)
     on left: 0
 ENTRY_POINT (55)
     on left: 1, on right: 0
+LIST_INSTRUCTION (56)
+    on left: 2 3 4 5, on right: 1 2 3 4
+LIST_DECLARATIONS (57)
+    on left: 6 7, on right: 2 6
+DECLARATION (58)
+    on left: 8 9, on right: 6
+INST_AFFECTATION (59)
+    on left: 10, on right: 3
+EXPRESSION (60)
+    on left: 11 12 13 14 15 16 17 18, on right: 10 11 12 13 14 15 16
+VALEUR (61)
+    on left: 19 20 21, on right: 9 18
+VAR (62)
+    on left: 22 23, on right: 17
+IDFTAB (63)
+    on left: 24, on right: 23
+TYPE (64)
+    on left: 25 26 27, on right: 8 9
 
 
 state 0
 
     0 $accept: . ENTRY_POINT $end
 
-    PARENTHESEOUVERT  shift, and go to state 1
+    COMMENTAIRE  shift, and go to state 1
+    IDF          shift, and go to state 2
 
-    ENTRY_POINT  go to state 2
+    $end         reduce using rule 5 (LIST_INSTRUCTION)
+    $end         [reduce using rule 7 (LIST_DECLARATIONS)]
+    COMMENTAIRE  [reduce using rule 7 (LIST_DECLARATIONS)]
+    IDF          [reduce using rule 7 (LIST_DECLARATIONS)]
+    $default     reduce using rule 7 (LIST_DECLARATIONS)
+
+    ENTRY_POINT        go to state 3
+    LIST_INSTRUCTION   go to state 4
+    LIST_DECLARATIONS  go to state 5
+    INST_AFFECTATION   go to state 6
 
 
 state 1
 
-    1 ENTRY_POINT: PARENTHESEOUVERT .
+    4 LIST_INSTRUCTION: COMMENTAIRE . LIST_INSTRUCTION
 
-    $default  reduce using rule 1 (ENTRY_POINT)
+    COMMENTAIRE  shift, and go to state 1
+    IDF          shift, and go to state 2
+
+    $end         reduce using rule 5 (LIST_INSTRUCTION)
+    $end         [reduce using rule 7 (LIST_DECLARATIONS)]
+    COMMENTAIRE  [reduce using rule 7 (LIST_DECLARATIONS)]
+    IDF          [reduce using rule 7 (LIST_DECLARATIONS)]
+    $default     reduce using rule 7 (LIST_DECLARATIONS)
+
+    LIST_INSTRUCTION   go to state 7
+    LIST_DECLARATIONS  go to state 5
+    INST_AFFECTATION   go to state 6
 
 
 state 2
 
-    0 $accept: ENTRY_POINT . $end
+   10 INST_AFFECTATION: IDF . AFFECTATION EXPRESSION
 
-    $end  shift, and go to state 3
+    AFFECTATION  shift, and go to state 8
 
 
 state 3
 
+    0 $accept: ENTRY_POINT . $end
+
+    $end  shift, and go to state 9
+
+
+state 4
+
+    1 ENTRY_POINT: LIST_INSTRUCTION .
+
+    $default  reduce using rule 1 (ENTRY_POINT)
+
+
+state 5
+
+    2 LIST_INSTRUCTION: LIST_DECLARATIONS . LIST_INSTRUCTION
+    6 LIST_DECLARATIONS: LIST_DECLARATIONS . DECLARATION
+
+    COMMENTAIRE  shift, and go to state 1
+    IDF          shift, and go to state 2
+    MC_INT       shift, and go to state 10
+    MC_FLOAT     shift, and go to state 11
+    MC_CHAR      shift, and go to state 12
+
+    $end         reduce using rule 5 (LIST_INSTRUCTION)
+    $end         [reduce using rule 7 (LIST_DECLARATIONS)]
+    COMMENTAIRE  [reduce using rule 7 (LIST_DECLARATIONS)]
+    IDF          [reduce using rule 7 (LIST_DECLARATIONS)]
+    MC_INT       [reduce using rule 7 (LIST_DECLARATIONS)]
+    MC_FLOAT     [reduce using rule 7 (LIST_DECLARATIONS)]
+    MC_CHAR      [reduce using rule 7 (LIST_DECLARATIONS)]
+    $default     reduce using rule 5 (LIST_INSTRUCTION)
+
+    LIST_INSTRUCTION   go to state 13
+    LIST_DECLARATIONS  go to state 5
+    DECLARATION        go to state 14
+    INST_AFFECTATION   go to state 6
+    TYPE               go to state 15
+
+
+state 6
+
+    3 LIST_INSTRUCTION: INST_AFFECTATION . LIST_INSTRUCTION
+
+    COMMENTAIRE  shift, and go to state 1
+    IDF          shift, and go to state 2
+
+    $end         reduce using rule 5 (LIST_INSTRUCTION)
+    $end         [reduce using rule 7 (LIST_DECLARATIONS)]
+    COMMENTAIRE  [reduce using rule 7 (LIST_DECLARATIONS)]
+    IDF          [reduce using rule 7 (LIST_DECLARATIONS)]
+    $default     reduce using rule 7 (LIST_DECLARATIONS)
+
+    LIST_INSTRUCTION   go to state 16
+    LIST_DECLARATIONS  go to state 5
+    INST_AFFECTATION   go to state 6
+
+
+state 7
+
+    4 LIST_INSTRUCTION: COMMENTAIRE LIST_INSTRUCTION .
+
+    $default  reduce using rule 4 (LIST_INSTRUCTION)
+
+
+state 8
+
+   10 INST_AFFECTATION: IDF AFFECTATION . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 22
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 9
+
     0 $accept: ENTRY_POINT $end .
 
     $default  accept
+
+
+state 10
+
+   25 TYPE: MC_INT .
+
+    $default  reduce using rule 25 (TYPE)
+
+
+state 11
+
+   27 TYPE: MC_FLOAT .
+
+    $default  reduce using rule 27 (TYPE)
+
+
+state 12
+
+   26 TYPE: MC_CHAR .
+
+    $default  reduce using rule 26 (TYPE)
+
+
+state 13
+
+    2 LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION .
+
+    $default  reduce using rule 2 (LIST_INSTRUCTION)
+
+
+state 14
+
+    6 LIST_DECLARATIONS: LIST_DECLARATIONS DECLARATION .
+
+    $default  reduce using rule 6 (LIST_DECLARATIONS)
+
+
+state 15
+
+    8 DECLARATION: TYPE . IDF NOUVELLE_LIGNE
+    9            | TYPE . IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+
+    IDF  shift, and go to state 26
+
+
+state 16
+
+    3 LIST_INSTRUCTION: INST_AFFECTATION LIST_INSTRUCTION .
+
+    $default  reduce using rule 3 (LIST_INSTRUCTION)
+
+
+state 17
+
+   16 EXPRESSION: PARENTHESEOUVERT . EXPRESSION PARENTHESEFERME
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 27
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 18
+
+   19 VALEUR: FLOAT .
+
+    $default  reduce using rule 19 (VALEUR)
+
+
+state 19
+
+   20 VALEUR: INTEGER .
+
+    $default  reduce using rule 20 (VALEUR)
+
+
+state 20
+
+   22 VAR: IDF .
+   24 IDFTAB: IDF . CROCHETOUVERT INTEGER CROCHETFERME
+
+    CROCHETOUVERT  shift, and go to state 28
+
+    $default  reduce using rule 22 (VAR)
+
+
+state 21
+
+   21 VALEUR: CHAR .
+
+    $default  reduce using rule 21 (VALEUR)
+
+
+state 22
+
+   10 INST_AFFECTATION: IDF AFFECTATION EXPRESSION .
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+
+    PLUS       shift, and go to state 29
+    MULTI      shift, and go to state 30
+    DIV        shift, and go to state 31
+    PUISSANCE  shift, and go to state 32
+    MOIN       shift, and go to state 33
+
+    $default  reduce using rule 10 (INST_AFFECTATION)
+
+
+state 23
+
+   18 EXPRESSION: VALEUR .
+
+    $default  reduce using rule 18 (EXPRESSION)
+
+
+state 24
+
+   17 EXPRESSION: VAR .
+
+    $default  reduce using rule 17 (EXPRESSION)
+
+
+state 25
+
+   23 VAR: IDFTAB .
+
+    $default  reduce using rule 23 (VAR)
+
+
+state 26
+
+    8 DECLARATION: TYPE IDF . NOUVELLE_LIGNE
+    9            | TYPE IDF . AFFECTATION VALEUR NOUVELLE_LIGNE
+
+    NOUVELLE_LIGNE  shift, and go to state 34
+    AFFECTATION     shift, and go to state 35
+
+
+state 27
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+   16           | PARENTHESEOUVERT EXPRESSION . PARENTHESEFERME
+
+    PARENTHESEFERME  shift, and go to state 36
+    PLUS             shift, and go to state 29
+    MULTI            shift, and go to state 30
+    DIV              shift, and go to state 31
+    PUISSANCE        shift, and go to state 32
+    MOIN             shift, and go to state 33
+
+
+state 28
+
+   24 IDFTAB: IDF CROCHETOUVERT . INTEGER CROCHETFERME
+
+    INTEGER  shift, and go to state 37
+
+
+state 29
+
+   11 EXPRESSION: EXPRESSION PLUS . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 38
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 30
+
+   15 EXPRESSION: EXPRESSION MULTI . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 39
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 31
+
+   13 EXPRESSION: EXPRESSION DIV . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 40
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 32
+
+   14 EXPRESSION: EXPRESSION PUISSANCE . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 41
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 33
+
+   12 EXPRESSION: EXPRESSION MOIN . EXPRESSION
+
+    PARENTHESEOUVERT  shift, and go to state 17
+    FLOAT             shift, and go to state 18
+    INTEGER           shift, and go to state 19
+    IDF               shift, and go to state 20
+    CHAR              shift, and go to state 21
+
+    EXPRESSION  go to state 42
+    VALEUR      go to state 23
+    VAR         go to state 24
+    IDFTAB      go to state 25
+
+
+state 34
+
+    8 DECLARATION: TYPE IDF NOUVELLE_LIGNE .
+
+    $default  reduce using rule 8 (DECLARATION)
+
+
+state 35
+
+    9 DECLARATION: TYPE IDF AFFECTATION . VALEUR NOUVELLE_LIGNE
+
+    FLOAT    shift, and go to state 18
+    INTEGER  shift, and go to state 19
+    CHAR     shift, and go to state 21
+
+    VALEUR  go to state 43
+
+
+state 36
+
+   16 EXPRESSION: PARENTHESEOUVERT EXPRESSION PARENTHESEFERME .
+
+    $default  reduce using rule 16 (EXPRESSION)
+
+
+state 37
+
+   24 IDFTAB: IDF CROCHETOUVERT INTEGER . CROCHETFERME
+
+    CROCHETFERME  shift, and go to state 44
+
+
+state 38
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   11           | EXPRESSION PLUS EXPRESSION .
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+
+    MULTI      shift, and go to state 30
+    DIV        shift, and go to state 31
+    PUISSANCE  shift, and go to state 32
+
+    $default  reduce using rule 11 (EXPRESSION)
+
+
+state 39
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+   15           | EXPRESSION MULTI EXPRESSION .
+
+    PUISSANCE  shift, and go to state 32
+
+    $default  reduce using rule 15 (EXPRESSION)
+
+
+state 40
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   13           | EXPRESSION DIV EXPRESSION .
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+
+    PUISSANCE  shift, and go to state 32
+
+    $default  reduce using rule 13 (EXPRESSION)
+
+
+state 41
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   14           | EXPRESSION PUISSANCE EXPRESSION .
+   15           | EXPRESSION . MULTI EXPRESSION
+
+    $default  reduce using rule 14 (EXPRESSION)
+
+
+state 42
+
+   11 EXPRESSION: EXPRESSION . PLUS EXPRESSION
+   12           | EXPRESSION . MOIN EXPRESSION
+   12           | EXPRESSION MOIN EXPRESSION .
+   13           | EXPRESSION . DIV EXPRESSION
+   14           | EXPRESSION . PUISSANCE EXPRESSION
+   15           | EXPRESSION . MULTI EXPRESSION
+
+    MULTI      shift, and go to state 30
+    DIV        shift, and go to state 31
+    PUISSANCE  shift, and go to state 32
+
+    $default  reduce using rule 12 (EXPRESSION)
+
+
+state 43
+
+    9 DECLARATION: TYPE IDF AFFECTATION VALEUR . NOUVELLE_LIGNE
+
+    NOUVELLE_LIGNE  shift, and go to state 45
+
+
+state 44
+
+   24 IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME .
+
+    $default  reduce using rule 24 (IDFTAB)
+
+
+state 45
+
+    9 DECLARATION: TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE .
+
+    $default  reduce using rule 9 (DECLARATION)
