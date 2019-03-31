@@ -25,10 +25,10 @@ COMMENTAIRE ("#"){CHAR}*
 NOUVELLE_LIGNE [\n]
 
 %%
-"in range" { colonne+=yyleng; return IN_RANGE; }
 " " {colonne++;}
+{Tab} {colonne++; return TAB;}
+"in range" { colonne+=yyleng; return IN_RANGE; }
 {NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE;}
-{Tab}				{colonne++; return TAB;}
 "if" 				{ colonne+=yyleng;  return IF;}
 "elif" 				{colonne+=yyleng; return ELIF; }
 "else" 				{colonne+=yyleng; return ELSE; }
@@ -60,7 +60,6 @@ NOUVELLE_LIGNE [\n]
 "<=" 				{ colonne+=yyleng; return INFEGALE;}
 "=" 				{ colonne+=yyleng;  return AFFECTATION;}
 {COMMENTAIRE} 		{ colonne+=yyleng; yylval.chaine=strdup(yytext); printf("commentaire \n"); return COMMENTAIRE;}
-{CHAR} 				{ colonne+=yyleng; yylval.chaine=strdup(yytext); return CHAR; }
 {IDF} 		{
 						if(yyleng <8) {
 							colonne+=yyleng;
@@ -70,6 +69,7 @@ NOUVELLE_LIGNE [\n]
 							printf(" Erreur lexicale a la ligne: %d, colonne: %d :Identificateur trop long\n",ligne,colonne);
 						}
 					}
+{CHAR} 				{ colonne+=yyleng; yylval.chaine=strdup(yytext); return CHAR; }
 {INTEGER} 			{ colonne+=yyleng; yylval.chaine=strdup(yytext); return INTEGER;}
 {FLOAT} 			{  colonne+=yyleng; yylval.chaine=strdup(yytext); return FLOAT;}
 
