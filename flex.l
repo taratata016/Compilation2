@@ -1,10 +1,8 @@
 %{
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
+#include "bison.tab.h"
 
 int ligne=1;
 int colonne=0;
@@ -27,15 +25,15 @@ COMMENTAIRE ("#"){CHAR}*
 NOUVELLE_LIGNE [\n]
 
 %%
-"in range" 			{ colonne+=yyleng; return IN_RANGE; }
-" " 				{colonne++;}
-{NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE}
-{Tab}				{colonne++; return TAB}
+"in range" { colonne+=yyleng; return IN_RANGE; }
+" " {colonne++;}
+{NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE;}
+{Tab}				{colonne++; return TAB;}
 "if" 				{ colonne+=yyleng;  return IF;}
 "elif" 				{colonne+=yyleng; return ELIF; }
 "else" 				{colonne+=yyleng; return ELSE; }
 "for" 				{ colonne+=yyleng;  return FOR; }
-"int" 				{ colonne+=yyleng;  return MC_INT; }
+"int" 		{ colonne+=yyleng;  return MC_INT; }
 "char" 				{ colonne+=yyleng;  return MC_CHAR; }
 "float" 			{ colonne+=yyleng; return MC_FLOAT; }
 "while" 			{ colonne+=yyleng;  return WHILE; }

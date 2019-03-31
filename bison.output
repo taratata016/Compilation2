@@ -1,0 +1,154 @@
+Terminals unused in grammar
+
+   POINTVIRGULE
+   DEUXPOINTS
+   PARENTHESEFERME
+   CROCHETOUVERT
+   CROCHETFERME
+   VIRGULE
+   PROGRAM
+   Begin
+   END
+   CONSTANT
+   IN_RANGE
+   NOUVELLE_LIGNE
+   TAB
+   IF
+   ELSE
+   ELIF
+   ENDIF
+   CASE
+   CHECK
+   SO
+   ENDCHECK
+   DEFAULT
+   ENDCASE
+   FOR
+   DO
+   ENDFOR
+   COMMENTAIRE
+   FLOAT
+   INTEGER
+   IDF
+   CHAR
+   MC_INT
+   MC_FLOAT
+   MC_CHAR
+   WHILE
+   AFFECTATION
+   PLUS
+   MULTI
+   DIV
+   PUISSANCE
+   MOIN
+   AND
+   OR
+   DIFF
+   SUPP
+   INF
+   EGALE
+   NONEGALE
+   SUPEGALE
+   INFEGALE
+
+
+Grammar
+
+    0 $accept: ENTRY_POINT $end
+
+    1 ENTRY_POINT: PARENTHESEOUVERT
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+POINTVIRGULE (258)
+DEUXPOINTS (259)
+PARENTHESEOUVERT (260) 1
+PARENTHESEFERME (261)
+CROCHETOUVERT (262)
+CROCHETFERME (263)
+VIRGULE (264)
+PROGRAM (265)
+Begin (266)
+END (267)
+CONSTANT (268)
+IN_RANGE (269)
+NOUVELLE_LIGNE (270)
+TAB (271)
+IF (272)
+ELSE (273)
+ELIF (274)
+ENDIF (275)
+CASE (276)
+CHECK (277)
+SO (278)
+ENDCHECK (279)
+DEFAULT (280)
+ENDCASE (281)
+FOR (282)
+DO (283)
+ENDFOR (284)
+COMMENTAIRE (285)
+FLOAT (286)
+INTEGER (287)
+IDF (288)
+CHAR (289)
+MC_INT (290)
+MC_FLOAT (291)
+MC_CHAR (292)
+WHILE (293)
+AFFECTATION (294)
+PLUS (295)
+MULTI (296)
+DIV (297)
+PUISSANCE (298)
+MOIN (299)
+AND (300)
+OR (301)
+DIFF (302)
+SUPP (303)
+INF (304)
+EGALE (305)
+NONEGALE (306)
+SUPEGALE (307)
+INFEGALE (308)
+
+
+Nonterminals, with rules where they appear
+
+$accept (54)
+    on left: 0
+ENTRY_POINT (55)
+    on left: 1, on right: 0
+
+
+state 0
+
+    0 $accept: . ENTRY_POINT $end
+
+    PARENTHESEOUVERT  shift, and go to state 1
+
+    ENTRY_POINT  go to state 2
+
+
+state 1
+
+    1 ENTRY_POINT: PARENTHESEOUVERT .
+
+    $default  reduce using rule 1 (ENTRY_POINT)
+
+
+state 2
+
+    0 $accept: ENTRY_POINT . $end
+
+    $end  shift, and go to state 3
+
+
+state 3
+
+    0 $accept: ENTRY_POINT $end .
+
+    $default  accept
