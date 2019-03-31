@@ -1,2 +1,4 @@
-int F = 5
-int Ra_hma = 5
+int Ab
+int R=5
+int RR
+
