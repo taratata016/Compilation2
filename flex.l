@@ -27,7 +27,7 @@ CHAR '.'
 
 %%
 " " {colonne++;}
-{Tab} {colonne++; return TAB;}
+{Tab} {printf("\ntabulation rencontree\n");colonne++; return TAB;}
 "in range" { colonne+=yyleng; return IN_RANGE; }
 {NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE;}
 "if" 				{ colonne+=yyleng;  return IF;}

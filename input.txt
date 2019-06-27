@@ -1,3 +1,5 @@
-for Ia Ian range (0,5):
-	Ia = 5
-	Ia = 6
+int I=0
+
+I=rs
+
+  
