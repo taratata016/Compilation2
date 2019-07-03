@@ -40,7 +40,7 @@
 %token FOR DO ENDFOR
 %token COMMENTAIRE
 %token FLOAT INTEGER IDF CHAR MC_INT MC_FLOAT MC_CHAR WHILE
-%token AFFECTATION
+%token '='
 %token PLUS
 %token MULTI
 %token DIV
@@ -58,7 +58,7 @@
 
 %type <NT> EXPRESSION
 %type <val>VALEUR
-%type <chaine>TYPE FLOAT INTEGER IDF IDFTAB CHAR VAR CONDITION
+%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR
 
 
 %left OR
@@ -74,40 +74,37 @@
 
 %%
 
-LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION
-                  | INST_AFFECTATION LIST_INSTRUCTION
-                  | COMMENTAIRE LIST_INSTRUCTION
-                  | BOUCLE_FOR LIST_INSTRUCTION
-                  | INST_IF LIST_INSTRUCTION
-                  |
-                  ;
+LIST_INSTRUCTION: DECLARATION INSTRUCTION
+;
+DECLARATION : DEC | DEC_AFF | DECLARATION DEC | DECLARATION DEC_AFF
+;
 
-LIST_DECLARATIONS: LIST_DECLARATIONS DECLARATION
-                   |
-                   ;
-DECLARATION: TYPE IDF NOUVELLE_LIGNE 
+DEC: TYPE IDF NOUVELLE_LIGNE
               {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                 }
               }
-             |
-             TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+;
+DEC_AFF :  TYPE IDF '=' VALEUR NOUVELLE_LIGNE
              {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                 }
               }
-             ;
+;
+INSTRUCTION : AFFECTATION | INSTRUCTION AFFECTATION
+;
 
-INST_AFFECTATION: IDF AFFECTATION EXPRESSION
+AFFECTATION: IDF '=' EXPRESSION NOUVELLE_LIGNE
                  {
                   if(!nondeclare($1))
                   {
                     modifConstant($1);
                     compareTypes(idfType($1),$3.type);
                   }
-                 };
+                 }
+;
 
 EXPRESSION: EXPRESSION PLUS EXPRESSION{
               compareTypes($1.type,$3.type);
@@ -146,6 +143,7 @@ EXPRESSION: EXPRESSION PLUS EXPRESSION{
               $$.type=$1.type;
             }
             ;
+
 VALEUR: FLOAT { $$.type = "FLT"; $$.value = $1;}
         | INTEGER {$$.type = "INT"; $$.value = $1;}
         | CHAR {$$.type = "CHR"; $$.value = $1;}
@@ -153,47 +151,12 @@ VALEUR: FLOAT { $$.type = "FLT"; $$.value = $1;}
 VAR: IDF {
       nondeclare($1);
      }
-     | IDFTAB
      ;
-
-IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME{
-          nondeclare($1);
-          accesTab($1,atoi($3));
-          char* c = $1;
-          c = strcat(c,"[");
-        	c = strcat(c,$3);
-        	c = strcat(c,"]");
-          $$ = c;
-        };
 
 TYPE: MC_INT { $$ = "INT"}
       | MC_CHAR { $$ = "CHR" }
       | MC_FLOAT { $$ = "FLT" }
       ;
-
-BOUCLE_FOR: FOR IDF IN_RANGE PARENTHESEOUVERT INTEGER VIRGULE INTEGER PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE {printf("boucle trouve\n");} LIST_INSTRUCTION_BOUCLE NOUVELLE_LIGNE ;
-LIST_INSTRUCTION_BOUCLE: TAB LIST_INSTRUCTION |TAB TAB LIST_INSTRUCTION;
-
-INST_IF: IF PARENTHESEOUVERT CONDITION PARENTHESEFERME NOUVELLE_LIGNE LIST_INSTRUCTION SUITEIF;
-
-SUITEIF: ELIF PARENTHESEOUVERT CONDITION PARENTHESEFERME NOUVELLE_LIGNE LIST_INSTRUCTION SUITEIF
-         | ELSE LIST_INSTRUCTION NOUVELLE_LIGNE
-         | NOUVELLE_LIGNE
-          ;
-
-
-CONDITION:   EXPRESSION SUPP EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION INF EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION EGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION NONEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION SUPEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION INFEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION OR EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION AND EXPRESSION NOUVELLE_LIGNE
-             | DIFF EXPRESSION NOUVELLE_LIGNE
-             ;
-
-
 
 %%
 
