@@ -46,7 +46,7 @@ int declaredeja(char *idf){
 }
 
 //verifier si l'idf utilisé et declaré
-int nondeclare(char *idf){
+int declared(char *idf){
   if(!existe(idf)){
     yyerror("idf non declarer");
     return 0;

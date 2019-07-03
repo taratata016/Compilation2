@@ -35,7 +35,7 @@ void viderTS();
 
 //fonctions symantiques
 int declaredeja(char *idf);
-int nondeclare(char *idf);
+int declared(char *idf);
 char* idfType(char* idf);
 void compareTypes(char* idf1,char* idf2);
 void modifConstant(char* idf);

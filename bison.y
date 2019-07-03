@@ -2,6 +2,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include "tableSymboles.h"
+    #include "Quad.h"
 
     extern FILE* yyin ;
     extern int yylineno;
@@ -17,7 +18,7 @@
     char* type;
     char* temp;
   }NT;
-  
+
   struct val{
     char* type;
     char* value;
@@ -40,7 +41,7 @@
 %token FOR DO ENDFOR
 %token COMMENTAIRE
 %token FLOAT INTEGER IDF CHAR MC_INT MC_FLOAT MC_CHAR WHILE
-%token AFFECTATION
+%token '='
 %token PLUS
 %token MULTI
 %token DIV
@@ -58,7 +59,7 @@
 
 %type <NT> EXPRESSION
 %type <val>VALEUR
-%type <chaine>TYPE FLOAT INTEGER IDF IDFTAB CHAR VAR CONDITION
+%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR
 
 
 %left OR
@@ -70,74 +71,82 @@
 %left DIFF
 %left PARENTHESEOUVERT
 
-%start LIST_INSTRUCTION
+%start DEBUT
 
 %%
 
-LIST_INSTRUCTION: LIST_DECLARATIONS LIST_INSTRUCTION
-                  | INST_AFFECTATION LIST_INSTRUCTION
-                  | COMMENTAIRE LIST_INSTRUCTION
-                  | BOUCLE_FOR LIST_INSTRUCTION
-                  | INST_IF LIST_INSTRUCTION
-                  |
-                  ;
+DEBUT: DECLARATION INSTRUCTION
+;
+DECLARATION : DEC | DEC_AFF | DECLARATION DEC | DECLARATION DEC_AFF
+;
 
-LIST_DECLARATIONS: LIST_DECLARATIONS DECLARATION
-                   |
-                   ;
-DECLARATION: TYPE IDF NOUVELLE_LIGNE 
+DEC: TYPE IDF NOUVELLE_LIGNE
               {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                 }
               }
-             |
-             TYPE IDF AFFECTATION VALEUR NOUVELLE_LIGNE
+;
+DEC_AFF :  TYPE IDF '=' VALEUR NOUVELLE_LIGNE
              {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                 }
               }
-             ;
+;
+INSTRUCTION : INSTRUCTION INST | INST
+;
 
-INST_AFFECTATION: IDF AFFECTATION EXPRESSION
+INST : AFFECTATION | INST_IF;
+
+AFFECTATION: IDF '=' EXPRESSION NOUVELLE_LIGNE
                  {
-                  if(!nondeclare($1))
+                  if( declared($1) )
                   {
-                    modifConstant($1);
                     compareTypes(idfType($1),$3.type);
+                    addQuad(":=",$3.temp," ",$1);
                   }
-                 };
+                 }
+;
 
 EXPRESSION: EXPRESSION PLUS EXPRESSION{
               compareTypes($1.type,$3.type);
+              $$.temp=whatT();
               $$.type=$1.type;
+              addQuad("+",$1.temp,$3.temp,$$.temp);
             }
             | EXPRESSION MOIN EXPRESSION{
               compareTypes($1.type,$3.type);
+              $$.temp=whatT();
               $$.type=$1.type;
+              addQuad("-",$1.temp,$3.temp,$$.temp);
             }
             | EXPRESSION DIV EXPRESSION{
               if(atoi($3.temp)==0 && strcmp(idfType($3.temp),"INT")==0)
                 yyerror("devision par zero");
-              else{
+              else
                 compareTypes($1.type,$3.type);
-                $$.type=$1.type;
-              }
+              $$.temp=whatT();
+              $$.type=$1.type;
+              addQuad("/",$1.temp,$3.temp,$$.temp);
             }
             | EXPRESSION PUISSANCE EXPRESSION{
               compareTypes($1.type,$3.type);
+              $$.temp=whatT();
               $$.type=$1.type;
+              addQuad("^",$1.temp,$3.temp,$$.temp);
             }
             | EXPRESSION MULTI EXPRESSION{
               compareTypes($1.type,$3.type);
+              $$.temp=whatT();
               $$.type=$1.type;
+              addQuad("*",$1.temp,$3.temp,$$.temp);
             }
             |  PARENTHESEOUVERT EXPRESSION PARENTHESEFERME {
               $$.temp=$2.temp;
               $$.type=$2.type;
             }
-            | VAR {
+            |  VAR {
               $$.temp=$1;
               $$.type=idfType($1);
             }
@@ -146,54 +155,31 @@ EXPRESSION: EXPRESSION PLUS EXPRESSION{
               $$.type=$1.type;
             }
             ;
+
 VALEUR: FLOAT { $$.type = "FLT"; $$.value = $1;}
         | INTEGER {$$.type = "INT"; $$.value = $1;}
         | CHAR {$$.type = "CHR"; $$.value = $1;}
         ;
-VAR: IDF {
-      nondeclare($1);
-     }
-     | IDFTAB
-     ;
-
-IDFTAB: IDF CROCHETOUVERT INTEGER CROCHETFERME{
-          nondeclare($1);
-          accesTab($1,atoi($3));
-          char* c = $1;
-          c = strcat(c,"[");
-        	c = strcat(c,$3);
-        	c = strcat(c,"]");
-          $$ = c;
-        };
+VAR: IDF;
 
 TYPE: MC_INT { $$ = "INT"}
       | MC_CHAR { $$ = "CHR" }
       | MC_FLOAT { $$ = "FLT" }
       ;
 
-BOUCLE_FOR: FOR IDF IN_RANGE PARENTHESEOUVERT INTEGER VIRGULE INTEGER PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE {printf("boucle trouve\n");} LIST_INSTRUCTION_BOUCLE NOUVELLE_LIGNE ;
-LIST_INSTRUCTION_BOUCLE: TAB LIST_INSTRUCTION |TAB TAB LIST_INSTRUCTION;
-
-INST_IF: IF PARENTHESEOUVERT CONDITION PARENTHESEFERME NOUVELLE_LIGNE LIST_INSTRUCTION SUITEIF;
-
-SUITEIF: ELIF PARENTHESEOUVERT CONDITION PARENTHESEFERME NOUVELLE_LIGNE LIST_INSTRUCTION SUITEIF
-         | ELSE LIST_INSTRUCTION NOUVELLE_LIGNE
-         | NOUVELLE_LIGNE
-          ;
+INST_IF: IF CONDITION;
 
 
 CONDITION:   EXPRESSION SUPP EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION INF EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION EGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION NONEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION SUPEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION INFEGALE EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION OR EXPRESSION NOUVELLE_LIGNE
-             | EXPRESSION AND EXPRESSION NOUVELLE_LIGNE
-             | DIFF EXPRESSION NOUVELLE_LIGNE
-             ;
-
-
+           | EXPRESSION INF EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION EGALE EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION NONEGALE EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION SUPEGALE EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION INFEGALE EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION OR EXPRESSION NOUVELLE_LIGNE
+           | EXPRESSION AND EXPRESSION NOUVELLE_LIGNE
+           | DIFF EXPRESSION NOUVELLE_LIGNE
+           ;
 
 %%
 
@@ -208,7 +194,7 @@ int main(){
   yyin=fopen("input.txt","r");
   yyparse();
   afficher();
-
+  saveQuads();
   viderTS();
   return 0;
 }
