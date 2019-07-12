@@ -107,6 +107,7 @@ char* whatT(){
 	return T ;
 }
 
+
 /*
 *OPTIMISATION
 */

@@ -7,7 +7,7 @@ typedef struct Entite Entite;
 struct Entite {
   char* nom; //nom de la variable ou la constante exp: a1,tab,etc
   char* nature; //variable ou constante
-  char* type; //
+  char* type; //type
   int tailleTab;
   Entite *suivant;
 };

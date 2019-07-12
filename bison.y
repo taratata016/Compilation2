@@ -3,7 +3,7 @@
     #include <stdlib.h>
     #include "tableSymboles.h"
     #include "Quad.h"
-
+    #include "Assembly.h"
     extern FILE* yyin ;
     extern int yylineno;
     extern int colonne;
@@ -26,7 +26,7 @@
 
   struct jump{
     int sauvFin;
-    int sauvDeb;
+    int sauvDeb ;
   }jump;
 
 }
@@ -59,8 +59,8 @@
 
 %type <NT> EXPRESSION
 %type <val>VALEUR
-%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR
-
+%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR CONDITION
+%type <jump>INST_IF
 
 %left OR
 %left AND
@@ -167,19 +167,47 @@ TYPE: MC_INT { $$ = "INT"}
       | MC_FLOAT { $$ = "FLT" }
       ;
 
-INST_IF: IF CONDITION;
+INST_IF: IF PARENTHESEOUVERT CONDITION PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE INSTRUCTION NOUVELLE_LIGNE SUITE_IF{
+                                                                                                                                $$.sauvDeb = nquad ;
+                                                                                                                                addQuad("BZ","",$3,"");
+                                                                                                                               }
 
+ ;
+SUITE_IF: ELSE NOUVELLE_LIGNE INST
+          |ELIF PARENTHESEOUVERT CONDITION PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE INSTRUCTION NOUVELLE_LIGNE SUITE_IF
+          |;
 
-CONDITION:   EXPRESSION SUPP EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION INF EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION EGALE EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION NONEGALE EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION SUPEGALE EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION INFEGALE EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION OR EXPRESSION NOUVELLE_LIGNE
-           | EXPRESSION AND EXPRESSION NOUVELLE_LIGNE
-           | DIFF EXPRESSION NOUVELLE_LIGNE
-           ;
+CONDITION:   EXPRESSION SUPP EXPRESSION{
+              $$ = addQuadComp("BP",$1.temp,$3.temp);
+             }
+             | EXPRESSION INF EXPRESSION{
+               $$ = addQuadComp("BM",$1.temp,$3.temp);
+             }
+             | EXPRESSION EGALE EXPRESSION{
+               $$ = addQuadComp("BZ",$1.temp,$3.temp);
+             }
+             | EXPRESSION NONEGALE EXPRESSION{
+               $$ = addQuadComp("BNZ",$1.temp,$3.temp);
+             }
+             | EXPRESSION SUPEGALE EXPRESSION{
+               $$ = addQuadComp("BPZ",$1.temp,$3.temp);
+             }
+             | EXPRESSION INFEGALE EXPRESSION{
+               $$ = addQuadComp("BMZ",$1.temp,$3.temp);
+             }
+             | EXPRESSION OR EXPRESSION{
+               $$ = whatT();
+               addQuadLogi(1,$1.temp,$3.temp,$$);
+             }
+             | EXPRESSION AND EXPRESSION{
+               $$ = whatT();
+               addQuadLogi(2,$1.temp,$3.temp,$$);
+             }
+             | DIFF EXPRESSION{
+               $$ = whatT();
+               addQuadLogi(3,$2.temp,"",$$);
+             }
+             ;
 
 %%
 
@@ -195,6 +223,7 @@ int main(){
   yyparse();
   afficher();
   saveQuads();
+  generate_Assembly_code();
   viderTS();
   return 0;
 }

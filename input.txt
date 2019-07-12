@@ -2,5 +2,5 @@ int T
 int S
 int C
 T=5
-T=5
-T=5
+T=T+9*5+62+5+3
+

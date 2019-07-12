@@ -85,6 +85,7 @@ char* idfType(char* idf){
 void compareTypes(char* type1,char* type2){
   if( (strcasecmp(type1,type2)!=0) && !( (strcasecmp("FLT",type1)==0 && strcasecmp(type2,"INT")==0) )) yyerror(" types incompabtibles.");
 }
+
 //savoir la nature de l'idf
 char* natureIdf(char* idf){
   Entite *newentite ;
