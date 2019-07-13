@@ -1,0 +1,27 @@
+TITLE Mini python.asm : Mini python
+
+Pile SEGMENT STACK
+	DW 100 dup(?)
+Pile ENDS
+
+DONNEE SEGMENT  
+	Promov DD  ? 
+	Ivpromo DD  ? 
+DONNEE ENDS  
+
+CODE SEGMENT
+MAIN:
+		ASSUME CS:CODE,		DS:DONNEE,		SS:Pile
+		MOV AX,Pile
+		MOV SS, AX
+
+		MOV AX, 5 
+		MOV Promov, AX 
+		MOV AX, 2019 
+		MOV Ivpromo, AX 
+		
+
+MOV AH, 4Ch
+INT 21h ; MAIN ENDS
+MAIN ENDS
+CODE ENDS
