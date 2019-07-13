@@ -161,6 +161,7 @@ int existe(char *idf){
         if (strcasecmp(idf, newentite->nom) == 0) return 1 ;
         else newentite = newentite->suivant ;
     }
+    yyerror("IDF NON DECLARE");
     return 0;
 }
 

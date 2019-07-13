@@ -12,13 +12,13 @@ extern YYSTYPE yylval;
 %}
 
 %option yylineno
-
+COMMENTAIRE #.*\n
 maj [A-Z]
 miniscule [a-z]
 chiffre [0-9]
 Tab [\t]
 IDF {maj}({miniscule}|{chiffre})*
-COMMENTAIRE ("#"){CHAR}*
+
 NOUVELLE_LIGNE [\n]
 
 INTEGER [-]{chiffre}+|{chiffre}+
@@ -60,7 +60,7 @@ CHAR '.'
 ">=" 				{ colonne+=yyleng; return SUPEGALE;}
 "<=" 				{ colonne+=yyleng; return INFEGALE;}
 "=" 				{ colonne+=yyleng;  return '=';}
-{COMMENTAIRE} 		{ colonne+=yyleng; yylval.chaine=strdup(yytext); printf("commentaire \n"); return COMMENTAIRE;}
+{COMMENTAIRE} 		{ colonne+=yyleng;}
 {CHAR} 				{ colonne+=yyleng; yylval.chaine=strdup(yytext); return CHAR; }
 {IDF} 		{			if(yyleng <8) {
 							colonne+=yyleng;

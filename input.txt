@@ -1,6 +1,8 @@
-int T
-int S
-int C
-T=5
-T=T+9*5+62+5+3
+#  Test TP compilation IV
+int Promov=5
+int Ivpromo = 2019
 
+Ivfirst  =  2016
+Ivpr18   =  Ivfirst +2
+Ivpr19   = # promo iv 18 + 1
+Ivpr19   = Ivpr18 + 1

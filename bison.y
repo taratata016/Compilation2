@@ -80,18 +80,22 @@ DEBUT: DECLARATION INSTRUCTION
 DECLARATION : DEC | DEC_AFF | DECLARATION DEC | DECLARATION DEC_AFF
 ;
 
+
 DEC: TYPE IDF NOUVELLE_LIGNE
               {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                 }
+
               }
 ;
 DEC_AFF :  TYPE IDF '=' VALEUR NOUVELLE_LIGNE
-             {
+             {     printf("\nlolo");
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
+                  addQuad(":=",$4.value," ",$2);
                 }
+
               }
 ;
 INSTRUCTION : INSTRUCTION INST | INST
