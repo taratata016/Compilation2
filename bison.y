@@ -35,7 +35,7 @@
 %token PROGRAM Begin END CONSTANT
 %token IN_RANGE
 %token NOUVELLE_LIGNE
-%token TAB
+%token TAB mc_indent mc_unindent
 %token IF ELSE ELIF ENDIF
 %token CASE CHECK SO ENDCHECK DEFAULT ENDCASE
 %token FOR DO ENDFOR
@@ -57,10 +57,14 @@
 %token SUPEGALE
 %token INFEGALE
 
+
+%type <jump> ELIF_ELSE SOUS_BLOC
+%type <jump> INST_IF
 %type <NT> EXPRESSION
 %type <val>VALEUR
-%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR CONDITION
-%type <jump>INST_IF
+%type <chaine>TYPE FLOAT INTEGER IDF CHAR VAR CONDITION INST_COND ELSE ELIF
+
+
 
 %left OR
 %left AND
@@ -90,7 +94,7 @@ DEC: TYPE IDF NOUVELLE_LIGNE
               }
 ;
 DEC_AFF :  TYPE IDF '=' VALEUR NOUVELLE_LIGNE
-             {     printf("\nlolo");
+             {
                 if(!declaredeja($2)){
                   inserer($2,"var",$1,1);
                   addQuad(":=",$4.value," ",$2);
@@ -100,7 +104,7 @@ DEC_AFF :  TYPE IDF '=' VALEUR NOUVELLE_LIGNE
 ;
 INSTRUCTION : INSTRUCTION INST | INST
 ;
-
+BLOC_IF : mc_indent BLOC_IF mc_unindent BLOC_IF | mc_indent BLOC_IF mc_unindent | NOUVELLE_LIGNE BLOC_IF | INST BLOC_IF | NOUVELLE_LIGNE | INST ;
 INST : AFFECTATION | INST_IF;
 
 AFFECTATION: IDF '=' EXPRESSION NOUVELLE_LIGNE
@@ -171,15 +175,24 @@ TYPE: MC_INT { $$ = "INT"}
       | MC_FLOAT { $$ = "FLT" }
       ;
 
-INST_IF: IF PARENTHESEOUVERT CONDITION PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE INSTRUCTION NOUVELLE_LIGNE SUITE_IF{
-                                                                                                                                $$.sauvDeb = nquad ;
-                                                                                                                                addQuad("BZ","",$3,"");
-                                                                                                                               }
+INST_IF : IF INST_COND SOUS_BLOC ELIF_ELSE {$$.sauvDeb = nquad ;
+                                            addQuad("BZ","",$2,"");
+                                             };
 
- ;
-SUITE_IF: ELSE NOUVELLE_LIGNE INST
-          |ELIF PARENTHESEOUVERT CONDITION PARENTHESEFERME DEUXPOINTS NOUVELLE_LIGNE INSTRUCTION NOUVELLE_LIGNE SUITE_IF
-          |;
+ELIF_ELSE :{
+                      strcpy(quadruplet[$$.sauvFin].operande1 , intToStr(nquad)) ;
+                    }
+	| ELSE SOUS_BLOC {
+                                  strcpy(quadruplet[$2.sauvDeb].operande1 , intToStr(nquad)) ;
+                                }
+	| ELIF INST_COND SOUS_BLOC ELIF_ELSE {
+                                                      strcpy(quadruplet[$2.sauvDeb].operande1 , intToStr(nquad)) ;
+                                                    };
+
+
+INST_COND : PARENTHESEOUVERT CONDITION PARENTHESEFERME DEUXPOINTS;
+
+SOUS_BLOC : NOUVELLE_LIGNE mc_indent BLOC_IF mc_unindent;
 
 CONDITION:   EXPRESSION SUPP EXPRESSION{
               $$ = addQuadComp("BP",$1.temp,$3.temp);

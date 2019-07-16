@@ -6,6 +6,9 @@
 
 int ligne=1;
 int colonne=0;
+	const int TABULATION = 4;
+	int current_indentation = 0;
+	int indent_level = 0;
 
 extern YYSTYPE yylval;
 
@@ -17,19 +20,43 @@ maj [A-Z]
 miniscule [a-z]
 chiffre [0-9]
 Tab [\t]
-IDF {maj}({miniscule}|{chiffre})*
+IDF [a-zA-Z][a-zA-Z0-9]*
 
 NOUVELLE_LIGNE [\n]
 
 INTEGER [-]{chiffre}+|{chiffre}+
 FLOAT [-][0-9]+"."[0-9]+|[0-9]+"."[0-9]+
 CHAR '.'
+%x indent
+%s normal
 
 %%
+<indent>" " {colonne+= 1;
+			 current_indentation++;}
+<indent>"\t" {colonne+= TABULATION;
+			  current_indentation = (current_indentation + TABULATION) & ~(TABULATION-1);}
+<indent>"\n" { ligne = yylineno;
+			   current_indentation = 0;}
+<indent><<EOF>> { if (indent_level != 0) {
+					indent_level--;
+                    return mc_unindent;
+                }
+		  		return 0;}
+<indent>.        {
+                   unput(*yytext);
+                   if (current_indentation > indent_level) {
+                       indent_level++;
+                       return mc_indent;
+                   } else if (current_indentation < indent_level) {
+                       indent_level--;
+                       return mc_unindent;
+                   } else {
+                       BEGIN normal;
+                   }
+                 }
+
 " " {colonne++;}
-{Tab} {printf("\ntabulation rencontree\n");colonne++; return TAB;}
 "in range" { colonne+=yyleng; return IN_RANGE; }
-{NOUVELLE_LIGNE} 	{ligne++; colonne=0; return NOUVELLE_LIGNE;}
 "if" 				{ colonne+=yyleng;  return IF;}
 "elif" 				{colonne+=yyleng; return ELIF; }
 "else" 				{colonne+=yyleng; return ELSE; }
@@ -72,6 +99,21 @@ CHAR '.'
 					}
 {FLOAT} 			{ colonne+=yyleng; yylval.chaine=strdup(yytext); return FLOAT;}
 {INTEGER} 		{ colonne+=yyleng; yylval.chaine=strdup(yytext); return INTEGER;}
+
+[ \r] { colonne += yyleng;}
+\t { colonne += TABULATION;
+	 current_indentation = (current_indentation + TABULATION) & ~(TABULATION-1);
+	 BEGIN(indent);}
+\n { ligne = yylineno;
+	 current_indentation = 0;
+	 colonne = 1;
+	 BEGIN(indent);
+	 return NOUVELLE_LIGNE;}
+<<EOF>> { if (indent_level != 0) {
+			indent_level--;
+            return mc_unindent;
+        }
+		return 0;}
 
 .printf("Lexical error : ligne : %d ,colonne : %d\n",ligne,colonne);
 
